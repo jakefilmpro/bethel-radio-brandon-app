@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bethel Radio Brandon</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#000000"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="icon_180x180.png">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 35%),
+        linear-gradient(to bottom, #00341a 0%, #00af5c 100%);
+    }
+    .logo {
+      width: 120px;
+      margin-bottom: 30px;
+    }
+    .radio-player {
+      width: 320px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(12px);
+      border-radius: 28px;
+      padding: 30px;
+      text-align: center;
+      color: white;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+    }
+    #cover {
+      width: 180px;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+    .live-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.12);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+    .station-info h1 {
+      margin: 10px 0;
+      font-size: 32px;
+    }
+    #nowPlaying {
+      color: rgba(255,255,255,0.85);
+      font-size: 15px;
+      min-height: 40px;
+      margin-bottom: 28px;
+    }
+    #playBtn {
+      width: 85px;
+      height: 85px;
+      border-radius: 50%;
+      border: none;
+      background: white;
+      color: #00341a;
+      font-size: 32px;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+    #playBtn:hover {
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+
+<body>
+  <img class="logo" src="Asset 1.png" alt="Bethel Radio Brandon" />
+
+  <div class="radio-player">
+    <img id="cover" src="Asset 1.png" alt="Bethel Radio Brandon" />
+
+    <div class="station-info">
+      <span class="live-badge">● LIVE</span>
+      <h1 id="songTitle">Loading...</h1>
+      <p id="nowPlaying"></p>
+    </div>
+
+    <button id="playBtn">▶</button>
+
+    <audio id="radio" preload="none"></audio>
+  </div>
+
+  <script>
+    const STREAM_URL = "https://stream.rcast.net/73642";
+    const METADATA_URL = "https://status.rcast.net/73642";
+    const ARTWORK_URL = "https://artwork.rcast.net/73642";
+    const CORS_PROXY = "https://corsproxy.io/?url=";
+    // After deploying to Vercel or Netlify, replace with your endpoint:
+    // Vercel: "https://bethel-radio-redirect-resolver.vercel.app/api/resolve"
+    // Netlify: "https://your-site.netlify.app/.netlify/functions/resolve"
+    const ARTWORK_RESOLVER = "YOUR_ARTWORK_RESOLVER_URL";
+
+    const audio = document.getElementById("radio");
+    const playBtn = document.getElementById("playBtn");
+    const nowPlaying = document.getElementById("nowPlaying");
+    const cover = document.getElementById("cover");
+
+    audio.src = STREAM_URL;
+
+    let playing = false;
+
+    playBtn.addEventListener("click", async () => {
+      try {
+        if (!playing) {
+          await audio.play();
+          playBtn.innerHTML = "❚❚";
+          playing = true;
+        } else {
+          audio.pause();
+          playBtn.innerHTML = "▶";
+          playing = false;
+        }
+      } catch (err) {
+        alert("Tap again to start audio");
+      }
+    });
+
+    async function getArtworkUrl() {
+      try {
+        const response = await fetch(ARTWORK_RESOLVER + "?url=" + encodeURIComponent(ARTWORK_URL));
+        const data = await response.json();
+        return data.finalUrl || ARTWORK_URL;
+      } catch (err) {
+        console.error("Artwork fetch error:", err);
+        return ARTWORK_URL;
+      }
+    }
+
+    async function fetchMetadata() {
+      try {
+        const proxyMetadataUrl = CORS_PROXY + encodeURIComponent(METADATA_URL);
+        const metadataResponse = await fetch(proxyMetadataUrl);
+        const text = await metadataResponse.text();
+        const parts = text.split(" - ");
+        const title = parts.slice(0, -1).join(" - ");
+        const artist = parts[parts.length - 1];
+
+        document.getElementById("songTitle").innerText = title;
+        document.getElementById("nowPlaying").innerText = artist;
+
+        const artworkUrl = await getArtworkUrl();
+        cover.src = artworkUrl;
+      } catch (err) {
+        console.error("Metadata fetch error:", err);
+        document.getElementById("songTitle").innerText = "Live Stream";
+        document.getElementById("nowPlaying").innerText = "";
+        cover.src = "Asset 1.png";
+      }
+    }
+
+    fetchMetadata();
+    setInterval(fetchMetadata, 12000);
+  </script>
+  <script>
+    let deferredPrompt;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      const existingBtn = document.getElementById("installBtn");
+      if (existingBtn) existingBtn.remove();
+
+      e.preventDefault();
+      deferredPrompt = e;
+
+      const installBtn = document.createElement("button");
+      installBtn.id = "installBtn";
+      installBtn.innerText = "📲 Installa el app";
+      installBtn.style.marginTop = "20px";
+
+      document.body.appendChild(installBtn);
+
+      installBtn.addEventListener("click", () => {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted' || choiceResult.outcome === 'dismissed') {
+            installBtn.remove();
+            deferredPrompt = null;
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
