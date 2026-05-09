@@ -7,6 +7,9 @@
 
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#000000"/>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icon-512.png">
   <link rel="apple-touch-icon" sizes="180x180" href="icon_180x180.png">
   <style>
     body {
@@ -207,6 +210,41 @@
         });
       });
     });
+  </script>
+  <script>
+    function isIos() {
+      return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+    }
+
+    function isInStandaloneMode() {
+      return ('standalone' in window.navigator) && window.navigator.standalone;
+    }
+
+    if (isIos() && !isInStandaloneMode()) {
+      const installBanner = document.createElement("div");
+      installBanner.innerHTML = `
+        <div style="
+          position: fixed;
+          bottom: 20px;
+          left: 20px;
+          right: 20px;
+          background: rgba(0,0,0,0.9);
+          color: white;
+          padding: 16px;
+          border-radius: 18px;
+          font-size: 14px;
+          z-index: 9999;
+          text-align: center;
+          backdrop-filter: blur(10px);
+          box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        ">
+          📲 To install this app:<br><br>
+          Tap <strong>Share</strong> <br>
+          then tap <strong>"Add to Home Screen"</strong>
+        </div>
+      `;
+      document.body.appendChild(installBanner);
+    }
   </script>
 </body>
 </html>
