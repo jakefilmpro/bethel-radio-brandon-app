@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>Bethel Radio Brandon WSPE 95.5 FM</title>
+  <title>Bethel Radio Brandon WSPE 96.5 FM</title>
 
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#000000"/>
@@ -243,10 +243,11 @@
         document.getElementById("songTitle").innerText = title || "Estas Escuchando:";
         document.getElementById("nowPlaying").innerText = artist || "";
 
-        const artworkUrl = await getArtworkUrl();
-        if (artworkUrl && !artworkUrl.includes("error")) {
-          cover.src = artworkUrl;
-        }
+        // Artwork fetching temporarily disabled
+        // const artworkUrl = await getArtworkUrl();
+        // if (artworkUrl && !artworkUrl.includes("error")) {
+        //   cover.src = artworkUrl;
+        // }
       } catch (err) {
         console.error("Metadata fetch error:", err);
         document.getElementById("songTitle").innerText = "Estas Escuchando:";
