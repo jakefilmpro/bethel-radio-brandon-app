@@ -198,34 +198,6 @@
     setInterval(fetchMetadata, 12000);
   </script>
   <script>
-    let deferredPrompt;
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      const existingBtn = document.getElementById("installBtn");
-      if (existingBtn) existingBtn.remove();
-
-      e.preventDefault();
-      deferredPrompt = e;
-
-      const installBtn = document.createElement("button");
-      installBtn.id = "installBtn";
-      installBtn.innerText = "📲 Installa el app";
-      installBtn.style.marginTop = "20px";
-
-      document.body.appendChild(installBtn);
-
-      installBtn.addEventListener("click", () => {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted' || choiceResult.outcome === 'dismissed') {
-            installBtn.remove();
-            deferredPrompt = null;
-          }
-        });
-      });
-    });
-  </script>
-  <script>
     function isIos() {
       return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
     }
@@ -246,8 +218,13 @@
     });
 
     window.addEventListener('load', () => {
-
       if (isInStandaloneMode()) return;
+      setTimeout(showInstallModal, 1500);
+    });
+
+    function showInstallModal() {
+      const existingModal = document.getElementById("installModal");
+      if (existingModal) existingModal.remove();
 
       const modal = document.createElement("div");
 
@@ -346,7 +323,8 @@
       });
 
       closeBtn.addEventListener("click", () => {
-        document.getElementById("installModal").remove();
+        const modalEl = document.getElementById("installModal");
+        if (modalEl) modalEl.remove();
       });
 
     });
