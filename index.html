@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>Bethel Radio Brandon WSPE 95.5 FM</title>
 
   <link rel="manifest" href="manifest.json" />
@@ -10,7 +10,7 @@
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="icon-512.png">
+  <link rel="apple-touch-icon" href="icon_512x512.png">
   <link rel="apple-touch-icon" sizes="180x180" href="icon_180x180.png">
   <style>
     html {
@@ -21,7 +21,7 @@
     }
     body {
       margin: 0;
-      padding: 20px;
+      padding: 30px;
       padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
       min-height: 100dvh;
@@ -30,6 +30,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
+      touch-action: manipulation;
       font-family: Arial, sans-serif;
       background:
         radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 35%),
@@ -39,7 +40,7 @@
       background-color: #00341a;
     }
     .logo {
-      width: 144px;
+      width: 168px;
       margin-bottom: 30px;
     }
     .radio-player {
@@ -122,7 +123,6 @@
 
     const audio = document.getElementById("radio");
     const playBtn = document.getElementById("playBtn");
-    const nowPlaying = document.getElementById("nowPlaying");
     const cover = document.getElementById("cover");
 
     audio.src = STREAM_URL;
@@ -152,7 +152,7 @@
         let url = data.content || data.finalUrl;
 
         if (typeof url === 'string') {
-          url = url.trim().replace(/[^a-zA-Z0-9:/.?&=%-]/g, '');
+          url = url.trim().replace(/[^a-zA-Z0-9:/.?&=%_-]/g, '');
         }
 
         if (!url || url.includes("error") || url.includes("localhost") || !url.startsWith('http')) {
