@@ -131,10 +131,16 @@
       try {
         const response = await fetch(API_PROXY + "?url=" + encodeURIComponent(ARTWORK_URL));
         const data = await response.json();
-        return data.finalUrl || ARTWORK_URL;
+        const url = data.finalUrl || data.content;
+
+        if (!url || url.includes("error") || url.includes("localhost")) {
+          throw new Error("Invalid artwork URL");
+        }
+
+        return url;
       } catch (err) {
         console.error("Artwork fetch error:", err);
-        return ARTWORK_URL;
+        return "Asset 1.png";
       }
     }
 
@@ -142,16 +148,23 @@
       try {
         const response = await fetch(API_PROXY + "?url=" + encodeURIComponent(METADATA_URL));
         const data = await response.json();
-        const text = data.content;
+        const text = data.content || data.finalUrl;
+
+        if (!text || text.includes("error") || text.includes("localhost") || text.includes("development")) {
+          throw new Error("Proxy error");
+        }
+
         const parts = text.split(" - ");
         const title = parts.slice(0, -1).join(" - ");
         const artist = parts[parts.length - 1];
 
-        document.getElementById("songTitle").innerText = title;
-        document.getElementById("nowPlaying").innerText = artist;
+        document.getElementById("songTitle").innerText = title || "Live Stream";
+        document.getElementById("nowPlaying").innerText = artist || "";
 
         const artworkUrl = await getArtworkUrl();
-        cover.src = artworkUrl;
+        if (artworkUrl && !artworkUrl.includes("error")) {
+          cover.src = artworkUrl;
+        }
       } catch (err) {
         console.error("Metadata fetch error:", err);
         document.getElementById("songTitle").innerText = "Live Stream";
