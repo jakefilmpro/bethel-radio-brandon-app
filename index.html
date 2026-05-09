@@ -88,12 +88,17 @@
       border: none;
       background: white;
       color: #00341a;
-      font-size: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
       transition: 0.2s ease;
     }
     #playBtn:hover {
       transform: scale(1.05);
+    }
+    #playBtn:active, #volumeBtn:active {
+      transform: scale(0.95);
     }
     .controls-wrapper {
       display: flex;
@@ -108,13 +113,18 @@
       border: none;
       background: rgba(255,255,255,0.15);
       color: white;
-      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
       transition: 0.2s ease;
       margin-right: 15px;
     }
     #volumeBtn:hover {
       transform: scale(1.05);
+    }
+    #volumeBtn svg, #playBtn svg {
+      fill: currentColor;
     }
   </style>
 </head>
@@ -132,8 +142,17 @@
     </div>
 
     <div class="controls-wrapper">
-      <button id="volumeBtn">🔊</button>
-      <button id="playBtn">▶</button>
+      <button id="volumeBtn">
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+        </svg>
+      </button>
+      <button id="playBtn">
+        <svg viewBox="0 0 24 24" width="32" height="32">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+      </button>
     </div>
 
     <audio id="radio" preload="none"></audio>
@@ -162,11 +181,11 @@
       try {
         if (!playing) {
           await audio.play();
-          playBtn.innerHTML = "❚❚";
+          playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
           playing = true;
         } else {
           audio.pause();
-          playBtn.innerHTML = "▶";
+          playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><path d="M8 5v14l11-7z"/></svg>';
           playing = false;
         }
       } catch (err) {
@@ -177,11 +196,11 @@
     volumeBtn.addEventListener("click", () => {
       if (isMuted) {
         audio.volume = volume;
-        volumeBtn.textContent = "🔊";
+        volumeBtn.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
         isMuted = false;
       } else {
         audio.volume = 0;
-        volumeBtn.textContent = "🔇";
+        volumeBtn.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15" stroke="currentColor" stroke-width="2"/><line x1="17" y1="9" x2="23" y2="15" stroke="currentColor" stroke-width="2"/></svg>';
         isMuted = true;
       }
     });
