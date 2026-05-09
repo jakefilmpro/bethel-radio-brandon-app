@@ -1,20 +1,31 @@
 {
-  "name": "Bethel Radio Brandon WSPE 95.5 FM",
-  "short_name": "Bethel Radio Brandon WSPE 95.5 FM",
+  "name": "Bethel Radio Brandon",
+  "short_name": "Bethel Radio",
+  "description": "Bethel Radio Brandon WSPE 95.5 FM - Listen live",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000",
+  "orientation": "portrait",
+  "background_color": "#00341a",
   "theme_color": "#000000",
+  "scope": "/",
   "icons": [
     {
-      "src": "icon_192x192.png",
+      "src": "/icon_192x192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icon_512x512.png",
+      "src": "/icon_512x512.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "/icon_180x180.png",
+      "sizes": "180x180",
+      "type": "image/png"
     }
-  ]
+  ],
+  "categories": ["music", "entertainment"],
+  "lang": "es",
+  "dir": "ltr"
 }
