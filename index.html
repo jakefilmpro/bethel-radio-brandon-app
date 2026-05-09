@@ -131,9 +131,13 @@
       try {
         const response = await fetch(API_PROXY + "?url=" + encodeURIComponent(ARTWORK_URL));
         const data = await response.json();
-        const url = data.finalUrl || data.content;
+        let url = data.content || data.finalUrl;
 
-        if (!url || url.includes("error") || url.includes("localhost")) {
+        if (typeof url === 'string') {
+          url = url.trim().replace(/[^a-zA-Z0-9:/.?&=%-]/g, '');
+        }
+
+        if (!url || url.includes("error") || url.includes("localhost") || !url.startsWith('http')) {
           throw new Error("Invalid artwork URL");
         }
 
