@@ -95,6 +95,27 @@
     #playBtn:hover {
       transform: scale(1.05);
     }
+    .controls-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    #volumeBtn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255,255,255,0.15);
+      color: white;
+      font-size: 22px;
+      cursor: pointer;
+      transition: 0.2s ease;
+      margin-right: 15px;
+    }
+    #volumeBtn:hover {
+      transform: scale(1.05);
+    }
   </style>
 </head>
 
@@ -110,7 +131,10 @@
       <p id="nowPlaying"></p>
     </div>
 
-    <button id="playBtn">▶</button>
+    <div class="controls-wrapper">
+      <button id="volumeBtn">🔊</button>
+      <button id="playBtn">▶</button>
+    </div>
 
     <audio id="radio" preload="none"></audio>
   </div>
@@ -123,11 +147,16 @@
 
     const audio = document.getElementById("radio");
     const playBtn = document.getElementById("playBtn");
+    const volumeBtn = document.getElementById("volumeBtn");
     const cover = document.getElementById("cover");
 
     audio.src = STREAM_URL;
 
     let playing = false;
+    let volume = 0.8;
+    let isMuted = false;
+
+    audio.volume = volume;
 
     playBtn.addEventListener("click", async () => {
       try {
@@ -142,6 +171,18 @@
         }
       } catch (err) {
         alert("Tap again to start audio");
+      }
+    });
+
+    volumeBtn.addEventListener("click", () => {
+      if (isMuted) {
+        audio.volume = volume;
+        volumeBtn.textContent = "🔊";
+        isMuted = false;
+      } else {
+        audio.volume = 0;
+        volumeBtn.textContent = "🔇";
+        isMuted = true;
       }
     });
 
@@ -180,7 +221,7 @@
         const title = parts.slice(0, -1).join(" - ");
         const artist = parts[parts.length - 1];
 
-        document.getElementById("songTitle").innerText = title || "Live Stream";
+        document.getElementById("songTitle").innerText = title || "Estas Escuchando:";
         document.getElementById("nowPlaying").innerText = artist || "";
 
         const artworkUrl = await getArtworkUrl();
@@ -189,7 +230,7 @@
         }
       } catch (err) {
         console.error("Metadata fetch error:", err);
-        document.getElementById("songTitle").innerText = "Live Stream";
+        document.getElementById("songTitle").innerText = "Estas Escuchando:";
         document.getElementById("nowPlaying").innerText = "";
         cover.src = "fallback.png";
       }
