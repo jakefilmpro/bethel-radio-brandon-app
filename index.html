@@ -83,7 +83,7 @@
   <img class="logo" src="Asset 1.png" alt="Bethel Radio Brandon" />
 
   <div class="radio-player">
-    <img id="cover" src="Asset 1.png" alt="Bethel Radio Brandon" />
+    <img id="cover" src="fallback.png" alt="Bethel Radio Brandon" />
 
     <div class="station-info">
       <span class="live-badge">● LIVE</span>
@@ -144,7 +144,7 @@
         return url;
       } catch (err) {
         console.error("Artwork fetch error:", err);
-        return "Asset 1.png";
+        return "fallback.png";
       }
     }
 
@@ -173,7 +173,7 @@
         console.error("Metadata fetch error:", err);
         document.getElementById("songTitle").innerText = "Live Stream";
         document.getElementById("nowPlaying").innerText = "";
-        cover.src = "Asset 1.png";
+        cover.src = "fallback.png";
       }
     }
 
