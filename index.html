@@ -100,11 +100,7 @@
     const STREAM_URL = "https://stream.rcast.net/73642";
     const METADATA_URL = "https://status.rcast.net/73642";
     const ARTWORK_URL = "https://artwork.rcast.net/73642";
-    const CORS_PROXY = "https://corsproxy.io/?url=";
-    // After deploying to Vercel or Netlify, replace with your endpoint:
-    // Vercel: "https://bethel-radio-redirect-resolver.vercel.app/api/resolve"
-    // Netlify: "https://your-site.netlify.app/.netlify/functions/resolve"
-    const ARTWORK_RESOLVER = "https://bethel-radio-redirect-resolver.vercel.app/api/resolve";
+    const API_PROXY = "https://bethel-radio-redirect-resolver.vercel.app/api/resolve";
 
     const audio = document.getElementById("radio");
     const playBtn = document.getElementById("playBtn");
@@ -133,7 +129,7 @@
 
     async function getArtworkUrl() {
       try {
-        const response = await fetch(ARTWORK_RESOLVER + "?url=" + encodeURIComponent(ARTWORK_URL));
+        const response = await fetch(API_PROXY + "?url=" + encodeURIComponent(ARTWORK_URL));
         const data = await response.json();
         return data.finalUrl || ARTWORK_URL;
       } catch (err) {
@@ -144,9 +140,9 @@
 
     async function fetchMetadata() {
       try {
-        const proxyMetadataUrl = CORS_PROXY + encodeURIComponent(METADATA_URL);
-        const metadataResponse = await fetch(proxyMetadataUrl);
-        const text = await metadataResponse.text();
+        const response = await fetch(API_PROXY + "?url=" + encodeURIComponent(METADATA_URL));
+        const data = await response.json();
+        const text = data.content;
         const parts = text.split(" - ");
         const title = parts.slice(0, -1).join(" - ");
         const artist = parts[parts.length - 1];
