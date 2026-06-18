@@ -69,7 +69,8 @@ playBtn.addEventListener("click", async () => {
       playing = false;
       setStatus("");
     }
-  } catch {
+  } catch (e) {
+    console.error("Play failed:", e);
     setStatus("Tap play again");
     setTimeout(async () => {
       if (!playing) {
@@ -78,7 +79,9 @@ playBtn.addEventListener("click", async () => {
           playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
           playing = true;
           setStatus("");
-        } catch {}
+        } catch (e2) {
+          console.error("Retry play failed:", e2);
+        }
       }
     }, 1000);
   }
