@@ -58,8 +58,6 @@ playBtn.addEventListener("click", async () => {
     if (!playing) {
       cancelReconnect();
       reconnectAttempts = 0;
-      audio.src = STREAM_URL;
-      audio.load();
       await audio.play();
       playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
       playing = true;
@@ -76,8 +74,6 @@ playBtn.addEventListener("click", async () => {
     setTimeout(async () => {
       if (!playing) {
         try {
-          audio.src = STREAM_URL;
-          audio.load();
           await audio.play();
           playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
           playing = true;
