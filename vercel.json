@@ -8,7 +8,7 @@
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "Referrer-Policy", "value": "no-referrer" },
         { "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=()" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' https://stream.rcast.net; connect-src 'self' https://bethel-radio-redirect-resolver.vercel.app; frame-src 'none'; object-src 'none'; base-uri 'self'" }
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' https://stream.rcast.net https://*.rcast.net; connect-src 'self' https://bethel-radio-redirect-resolver.vercel.app; frame-src 'none'; object-src 'none'; base-uri 'self'" }
       ]
     },
     {
