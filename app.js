@@ -58,6 +58,8 @@ playBtn.addEventListener("click", async () => {
     if (!playing) {
       cancelReconnect();
       reconnectAttempts = 0;
+      setStatus("Connecting...");
+      playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12 6v6l4 2"/></svg>';
       await audio.play();
       playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
       playing = true;
@@ -71,16 +73,20 @@ playBtn.addEventListener("click", async () => {
     }
   } catch (e) {
     console.error("Play failed:", e);
+    playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><path d="M8 5v14l11-7z"/></svg>';
     setStatus("Tap play again");
     setTimeout(async () => {
       if (!playing) {
         try {
+          setStatus("Connecting...");
+          playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12 6v6l4 2"/></svg>';
           await audio.play();
           playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
           playing = true;
           setStatus("");
         } catch (e2) {
           console.error("Retry play failed:", e2);
+          playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><path d="M8 5v14l11-7z"/></svg>';
         }
       }
     }, 1000);
@@ -99,9 +105,10 @@ volumeBtn.addEventListener("click", () => {
   }
 });
 
-audio.addEventListener("error", () => { if (playing) attemptReconnect(); });
-audio.addEventListener("stalled", () => { if (playing) setStatus("Buffering..."); });
-audio.addEventListener("waiting", () => { if (playing) setStatus("Buffering..."); });
+audio.addEventListener("loadstart", () => { if (!playing) setStatus("Loading..."); });
+audio.addEventListener("error", (e) => { console.error("Audio error:", e); if (playing) attemptReconnect(); });
+audio.addEventListener("stalled", () => { setStatus("Buffering..."); });
+audio.addEventListener("waiting", () => { setStatus("Buffering..."); });
 audio.addEventListener("playing", () => {
   cancelReconnect();
   reconnectAttempts = 0;
