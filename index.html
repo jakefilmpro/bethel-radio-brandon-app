@@ -7,11 +7,11 @@
 
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#000000"/>
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link rel="icon" href="images/favicon.ico" type="image/x-icon">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="icon_512x512.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="icon_180x180.png">
+  <link rel="apple-touch-icon" href="images/icon_512x512.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="images/icon_180x180.png">
   <style>
     html {
       overflow: hidden;
@@ -126,19 +126,27 @@
     #volumeBtn svg, #playBtn svg {
       fill: currentColor;
     }
+    .connection-status {
+      color: #ffd700;
+      font-size: 13px;
+      min-height: 20px;
+      margin: 0 0 8px;
+      display: none;
+    }
   </style>
 </head>
 
 <body>
-  <img class="logo" src="Asset 1.png" alt="Bethel Radio Brandon" />
-
+<img class="logo" src="images/Asset 1.webp" alt="Bethel Radio Brandon" />
+  
   <div class="radio-player">
-    <img id="cover" src="fallback.png" alt="Bethel Radio Brandon" />
+    <img id="cover" src="images/fallback.webp" alt="Bethel Radio Brandon" />
 
     <div class="station-info">
       <span class="live-badge">● LIVE</span>
       <h1 id="songTitle">Loading...</h1>
       <p id="nowPlaying"></p>
+      <p id="connectionStatus" class="connection-status"></p>
     </div>
 
     <div class="controls-wrapper">
@@ -168,28 +176,84 @@
     const playBtn = document.getElementById("playBtn");
     const volumeBtn = document.getElementById("volumeBtn");
     const cover = document.getElementById("cover");
+    const connectionStatus = document.getElementById("connectionStatus");
 
     audio.src = STREAM_URL;
 
     let playing = false;
     let volume = 0.8;
     let isMuted = false;
+    let reconnectTimeout = null;
+    let reconnectAttempts = 0;
 
     audio.volume = volume;
+
+    function setStatus(msg) {
+      connectionStatus.innerText = msg;
+      connectionStatus.style.display = msg ? "block" : "none";
+    }
+
+    function cancelReconnect() {
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+        reconnectTimeout = null;
+      }
+    }
+
+    function attemptReconnect() {
+      if (!playing) return;
+      if (reconnectTimeout) return;
+
+      const delay = Math.min(2000 * Math.pow(2, reconnectAttempts), 30000) + Math.random() * 1000;
+      reconnectAttempts++;
+
+      setStatus("Reconnecting...");
+      playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12 6v6l4 2"/></svg>';
+
+      reconnectTimeout = setTimeout(() => {
+        reconnectTimeout = null;
+        audio.load();
+        audio.play().then(() => {
+          reconnectAttempts = 0;
+          setStatus("");
+        }).catch(() => {
+          attemptReconnect();
+        });
+      }, delay);
+    }
 
     playBtn.addEventListener("click", async () => {
       try {
         if (!playing) {
+          cancelReconnect();
+          reconnectAttempts = 0;
+          audio.src = STREAM_URL;
+          audio.load();
           await audio.play();
           playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
           playing = true;
+          setStatus("");
         } else {
+          cancelReconnect();
           audio.pause();
           playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><path d="M8 5v14l11-7z"/></svg>';
           playing = false;
+          setStatus("");
         }
-      } catch (err) {
-        alert("Tap again to start audio");
+      } catch {
+        setStatus("Tap play again");
+        setTimeout(async () => {
+          if (!playing) {
+            try {
+              audio.src = STREAM_URL;
+              audio.load();
+              await audio.play();
+              playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+              playing = true;
+              setStatus("");
+            } catch {}
+          }
+        }, 1000);
       }
     });
 
@@ -204,6 +268,17 @@
         isMuted = true;
       }
     });
+
+    audio.addEventListener("error", () => { if (playing) attemptReconnect(); });
+    audio.addEventListener("stalled", () => { if (playing) setStatus("Buffering..."); });
+    audio.addEventListener("waiting", () => { if (playing) setStatus("Buffering..."); });
+    audio.addEventListener("playing", () => {
+      cancelReconnect();
+      reconnectAttempts = 0;
+      setStatus("");
+      playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+    });
+    audio.addEventListener("ended", () => { if (playing) attemptReconnect(); });
 
     async function getArtworkUrl() {
       try {
@@ -222,7 +297,7 @@
         return url;
       } catch (err) {
         console.error("Artwork fetch error:", err);
-        return "fallback.png";
+        return "images/fallback.webp";
       }
     }
 
@@ -252,7 +327,7 @@
         console.error("Metadata fetch error:", err);
         document.getElementById("songTitle").innerText = "Estas Escuchando:";
         document.getElementById("nowPlaying").innerText = "";
-        cover.src = "fallback.png";
+        cover.src = "images/fallback.webp";
       }
     }
 
@@ -279,10 +354,17 @@
       deferredPrompt = e;
     });
 
-    window.addEventListener('load', () => {
+    function tryShowInstallModal() {
       if (isInStandaloneMode()) return;
-      setTimeout(showInstallModal, 1500);
-    });
+      try {
+        if (localStorage.getItem("pwaDismissed")) return;
+      } catch {}
+      showInstallModal();
+    }
+
+    playBtn.addEventListener("click", () => {
+      tryShowInstallModal();
+    }, { once: true });
 
     function showInstallModal() {
       const existingModal = document.getElementById("installModal");
@@ -366,6 +448,7 @@
       const closeBtn = document.getElementById("closeBtn");
 
       installBtn.addEventListener("click", async () => {
+        try { localStorage.setItem("pwaDismissed", "1"); } catch {}
 
         if (isIos()) {
 
@@ -385,6 +468,7 @@
       });
 
       closeBtn.addEventListener("click", () => {
+        try { localStorage.setItem("pwaDismissed", "1"); } catch {}
         const modalEl = document.getElementById("installModal");
         if (modalEl) modalEl.remove();
       });

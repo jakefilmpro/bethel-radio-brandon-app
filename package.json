@@ -1,0 +1,14 @@
+{
+  "name": "bethel-radio-brandon",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Web radio player for Bethel Radio Brandon WSPE 96.5 FM",
+  "scripts": {
+    "dev": "npx serve .",
+    "start": "npx serve ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jakefilmpro/bethel-radio-brandon-app.git"
+  }
+}
