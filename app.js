@@ -12,7 +12,7 @@ const connectionStatus = document.getElementById("connectionStatus");
 audio.src = STREAM_URL;
 
 let playing = false;
-let volume = 0.8;
+let volume = 1.0;
 let isMuted = false;
 let reconnectTimeout = null;
 let reconnectAttempts = 0;
