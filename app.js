@@ -94,6 +94,7 @@ playBtn.addEventListener("click", async () => {
       setStatus("Connecting...");
       playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12 6v6l4 2"/></svg>';
       await ensureSource();
+      if (hls) hls.startLoad();
       await audio.play();
       playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
       playing = true;
@@ -115,6 +116,7 @@ playBtn.addEventListener("click", async () => {
           setStatus("Connecting...");
           playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12 6v6l4 2"/></svg>';
           await ensureSource();
+          if (hls) hls.startLoad();
           await audio.play();
           playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
           playing = true;
@@ -218,3 +220,25 @@ function connectMetadata() {
 
 applyTrackTitle("");
 connectMetadata();
+
+async function tryAutoplay() {
+  setStatus("Connecting...");
+  try {
+    await ensureSource();
+    await audio.play();
+    playing = true;
+    playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+    setStatus("");
+  } catch (err) {
+    // Browser requires a user gesture first — fall back to the play button and
+    // pause the loader so nothing streams in the background. The source stays
+    // attached so a later tap can start playback immediately.
+    console.log("Autoplay blocked:", err && err.name);
+    playing = false;
+    playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><path d="M8 5v14l11-7z"/></svg>';
+    setStatus("");
+    if (hls) hls.stopLoad();
+  }
+}
+
+tryAutoplay();
