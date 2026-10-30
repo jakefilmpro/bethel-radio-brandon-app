@@ -236,7 +236,7 @@ async function tryAutoplay() {
     console.log("Autoplay blocked:", err && err.name);
     playing = false;
     playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><path d="M8 5v14l11-7z"/></svg>';
-    setStatus("");
+    setStatus("Toca reproducir para escuchar");
     if (hls) hls.stopLoad();
   }
 }
