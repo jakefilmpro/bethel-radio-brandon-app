@@ -2,10 +2,10 @@
 
 ## Overview
 
-Single-page vanilla JS PWA radio player for WSPE 96.5 FM. Zero dependencies, deployed as static files on Vercel.
+Single-page vanilla JS PWA radio player for WSPE 96.5 FM. No build step or npm deps (`hls.js` is vendored as a static file), deployed as static files on Vercel.
 
-- **Stream source**: rcast.net (Shoutcast/Icecast)
-- **Metadata**: Polls `status.rcast.net/73642` every 12s via a CORS proxy
+- **Stream source**: zeno.fm (HLS — `#EXTM3U` playlist on `*.surfernetwork.com`, played with the vendored `hls.min.js`; Safari/iOS play it natively)
+- **Metadata**: Subscribes to Zeno's Server-Sent Events feed `api.zeno.fm/mounts/metadata/subscribe/ryz8p4uisaqvv` (push, no polling, no proxy)
 - **Deployment**: Vercel (static file hosting)
 - **Language**: English UI, Spanish PWA install prompt
 
@@ -17,6 +17,7 @@ Single-page vanilla JS PWA radio player for WSPE 96.5 FM. Zero dependencies, dep
 |---|---|
 | `index.html` | Entire app in one file (HTML + CSS + JS) |
 | `manifest.json` | PWA manifest (icons, display, theme) |
+| `hls.min.js` | Vendored hls.js 1.7.4 — HLS playback for non-Safari browsers |
 | `service-worker.js` | Network-first SW with cache fallback |
 | `vercel.json` | Vercel headers (MIME types, caching) |
 | `Asset 1.png` | Station logo |
@@ -54,9 +55,8 @@ index.html
 ### Data flow
 
 ```
-fetchMetadata() every 12s
-  → API_PROXY (Vercel CORS proxy)
-  → status.rcast.net/73642
+new EventSource(METADATA_STREAM)  // api.zeno.fm/mounts/metadata/subscribe/ryz8p4uisaqvv
+  → push event: {"streamTitle":"Title - Artist"}
   → Parse "Title - Artist" format
   → Update #songTitle, #nowPlaying
   → (Artwork fetch disabled — cover stays on fallback.png)
@@ -75,12 +75,12 @@ window load + 1.5s delay → showInstallModal()
 
 ## Key Technical Details
 
-- **Stream URL**: `https://stream.rcast.net/73642`
-- **Metadata URL**: `https://status.rcast.net/73642`
-- **Artwork URL**: `https://artwork.rcast.net/73642`
+- **Stream URL**: `https://stream.zeno.fm/hls/ryz8p4uisaqvv` (HLS; 302s to a signed `live.m3u8` on `stream-286.surfernetwork.com`, token expires ~2 min so segments must be refetched)
+- **Metadata feed**: `https://api.zeno.fm/mounts/metadata/subscribe/ryz8p4uisaqvv` (SSE, `Access-Control-Allow-Origin: *`, `event:ping` keep-alive)
+- **Artwork URL**: `https://artwork.rcast.net/73642` (disabled)
 - **CORS Proxy**: `https://bethel-radio-redirect-resolver.vercel.app/api/resolve`
-- **Cache name**: `bethel-radio-v1` (service worker)
-- **Polling interval**: 12 seconds
+- **Cache name**: `bethel-radio-v3` (service worker)
+- **HLS library**: `hls.min.js` (vendored hls.js 1.7.4); Safari/iOS use native HLS
 - **Audio preload**: `none`
 - **Default volume**: `0.8`
 
@@ -158,7 +158,7 @@ window load + 1.5s delay → showInstallModal()
 
 1. **Artwork is completely disabled** — commented out with no timeline for re-enabling
 2. **Single monolithic file** — hard to maintain, read, and diff
-3. **No error recovery** — if the proxy goes down, metadata silently fails with no retry
+3. **Metadata depends on Zeno's SSE feed** — auto-reconnects, but no fallback display if the feed is down
 4. **Intrusive install prompt** — shows after 1.5s unconditionally (no dismiss tracking)
 5. **No package.json** — means no standardized scripts or tooling entry point
 6. **No analytics** — impossible to know how many listeners use the app

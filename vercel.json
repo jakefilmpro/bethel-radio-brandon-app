@@ -8,7 +8,7 @@
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "Referrer-Policy", "value": "no-referrer" },
         { "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=()" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' https://stream.rcast.net https://*.rcast.net; connect-src 'self' https://bethel-radio-redirect-resolver.vercel.app; frame-src 'none'; object-src 'none'; base-uri 'self'" }
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' blob: data: https://stream.zeno.fm https://*.surfernetwork.com; connect-src 'self' https://bethel-radio-redirect-resolver.vercel.app https://stream.zeno.fm https://*.surfernetwork.com https://api.zeno.fm; frame-src 'none'; object-src 'none'; base-uri 'self'" }
       ]
     },
     {
@@ -45,6 +45,12 @@
     },
     {
       "source": "/app.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache" }
+      ]
+    },
+    {
+      "source": "/hls.min.js",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache" }
       ]

@@ -1,9 +1,10 @@
-const CACHE_NAME = 'bethel-radio-v2';
+const CACHE_NAME = 'bethel-radio-v3';
 const PRECACHE_URLS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/styles.css?v=1',
+  '/hls.min.js?v=1',
   '/app.js?v=1',
   '/pwa-install.js?v=1',
   '/images/Asset 1.webp',

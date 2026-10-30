@@ -1,7 +1,7 @@
 # bethel-radio-brandon-app
 Bethel Radio Brandon - Web Radio Player
 A modern, mobile-friendly web radio player for Bethel Radio Brandon (96.5 FM). Features include:
-- Live Audio Streaming - Broadcasts live from rcast.net
+- Live Audio Streaming - Broadcasts live from zeno.fm (HLS stream, played via the bundled hls.js)
 - Real-time Metadata - Displays current song title and artist
 - Dynamic Album Artwork - Fetches and displays album artwork for the current track
 - Glass-morphism UI - Beautiful, modern interface with blur effects and gradient background

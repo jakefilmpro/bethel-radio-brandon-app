@@ -1,5 +1,5 @@
-const STREAM_URL = "https://stream.rcast.net/73642";
-const METADATA_URL = "https://status.rcast.net/73642";
+const STREAM_URL = "https://stream.zeno.fm/hls/ryz8p4uisaqvv";
+const METADATA_STREAM = "https://api.zeno.fm/mounts/metadata/subscribe/ryz8p4uisaqvv";
 const ARTWORK_URL = "https://artwork.rcast.net/73642";
 const API_PROXY = "https://bethel-radio-redirect-resolver.vercel.app/api/resolve";
 
@@ -9,7 +9,36 @@ const volumeBtn = document.getElementById("volumeBtn");
 const cover = document.getElementById("cover");
 const connectionStatus = document.getElementById("connectionStatus");
 
-audio.src = STREAM_URL;
+let hls = null;
+let sourcePromise = null;
+
+function ensureSource() {
+  if (sourcePromise) return sourcePromise;
+
+  if (window.Hls && window.Hls.isSupported()) {
+    hls = new window.Hls();
+    hls.loadSource(STREAM_URL);
+    hls.attachMedia(audio);
+    sourcePromise = new Promise((resolve) => {
+      hls.on(window.Hls.Events.MANIFEST_PARSED, resolve);
+    });
+    hls.on(window.Hls.Events.ERROR, (_event, data) => {
+      if (!data.fatal) return;
+      console.error("HLS fatal error:", data);
+      if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR) {
+        hls.recoverMediaError();
+      } else if (playing) {
+        attemptReconnect();
+      }
+    });
+  } else {
+    // Safari / iOS play HLS natively
+    audio.src = STREAM_URL;
+    sourcePromise = Promise.resolve();
+  }
+
+  return sourcePromise;
+}
 
 let playing = false;
 let volume = 1.0;
@@ -43,7 +72,11 @@ function attemptReconnect() {
 
   reconnectTimeout = setTimeout(() => {
     reconnectTimeout = null;
-    audio.load();
+    if (hls) {
+      hls.startLoad();
+    } else {
+      audio.load();
+    }
     audio.play().then(() => {
       reconnectAttempts = 0;
       setStatus("");
@@ -60,6 +93,7 @@ playBtn.addEventListener("click", async () => {
       reconnectAttempts = 0;
       setStatus("Connecting...");
       playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12 6v6l4 2"/></svg>';
+      await ensureSource();
       await audio.play();
       playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
       playing = true;
@@ -80,6 +114,7 @@ playBtn.addEventListener("click", async () => {
         try {
           setStatus("Connecting...");
           playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12 6v6l4 2"/></svg>';
+          await ensureSource();
           await audio.play();
           playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="32" height="32"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
           playing = true;
@@ -138,53 +173,48 @@ async function getArtworkUrl() {
   }
 }
 
-async function fetchMetadata() {
-  try {
-    const response = await fetch(API_PROXY + "?url=" + encodeURIComponent(METADATA_URL));
-    const data = await response.json();
-    const text = data.content || data.finalUrl;
+function applyTrackTitle(text) {
+  const parts = (text || "").split(" - ");
+  const title = parts.slice(0, -1).join(" - ");
+  const artist = parts[parts.length - 1];
 
-    if (!text || text.includes("error") || text.includes("localhost") || text.includes("development")) {
-      throw new Error("Proxy error");
+  document.getElementById("songTitle").innerText = title || "Estas Escuchando:";
+  document.getElementById("nowPlaying").innerText = artist || "";
+
+  // Artwork fetching temporarily disabled
+  // const artworkUrl = await getArtworkUrl();
+  // if (artworkUrl && !artworkUrl.includes("error")) {
+  //   cover.src = artworkUrl;
+  // }
+}
+
+let metadataSource = null;
+let metadataRetry = null;
+
+function connectMetadata() {
+  if (metadataSource) metadataSource.close();
+
+  metadataSource = new EventSource(METADATA_STREAM);
+
+  metadataSource.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      if (data.streamTitle) applyTrackTitle(data.streamTitle);
+    } catch (err) {
+      console.error("Metadata parse error:", err);
     }
+  };
 
-    const parts = text.split(" - ");
-    const title = parts.slice(0, -1).join(" - ");
-    const artist = parts[parts.length - 1];
-
-    document.getElementById("songTitle").innerText = title || "Estas Escuchando:";
-    document.getElementById("nowPlaying").innerText = artist || "";
-
-    // Artwork fetching temporarily disabled
-    // const artworkUrl = await getArtworkUrl();
-    // if (artworkUrl && !artworkUrl.includes("error")) {
-    //   cover.src = artworkUrl;
-    // }
-  } catch (err) {
-    console.error("Metadata fetch error:", err);
-    document.getElementById("songTitle").innerText = "Estas Escuchando:";
-    document.getElementById("nowPlaying").innerText = "";
-    cover.src = "images/fallback.webp";
-  }
+  metadataSource.onerror = () => {
+    // EventSource retries by itself; only rebuild it once it has given up
+    if (metadataSource && metadataSource.readyState === EventSource.CLOSED && !metadataRetry) {
+      metadataRetry = setTimeout(() => {
+        metadataRetry = null;
+        connectMetadata();
+      }, 12000);
+    }
+  };
 }
 
-const POLL_INTERVAL = 12000;
-const BACKGROUND_POLL_INTERVAL = 60000;
-let metadataInterval = null;
-
-function startMetadataPolling(ms) {
-  if (metadataInterval) clearInterval(metadataInterval);
-  metadataInterval = setInterval(fetchMetadata, ms);
-}
-
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) {
-    startMetadataPolling(BACKGROUND_POLL_INTERVAL);
-  } else {
-    startMetadataPolling(POLL_INTERVAL);
-    fetchMetadata();
-  }
-});
-
-fetchMetadata();
-startMetadataPolling(POLL_INTERVAL);
+applyTrackTitle("");
+connectMetadata();
